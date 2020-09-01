@@ -112,12 +112,17 @@ class Swiper extends Component {
         this.refs[VIEWPAGER_REF].setPageWithoutAnimation(selectedPage);
     }
 
+    setPage(selectedPage: number) {
+      selectedPage = this._position(selectedPage);
+      this.refs[VIEWPAGER_REF].setPage(selectedPage);
+    }
+
     /**
      * Goto next page with animation
      */
     nextPage() {
       var page = this._page(this._selected) + 1;
-      this.refs[VIEWPAGER_REF].setPage(page);
+      this.setPage(page);
     }
 
     /**
@@ -125,7 +130,7 @@ class Swiper extends Component {
      */
     prevPage() {
       var page = this._page(this._selected) - 1;
-      this.refs[VIEWPAGER_REF].setPage(page);
+      this.setPage(page);
     }
 
     render() {
