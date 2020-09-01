@@ -1,5 +1,6 @@
 'use strict'
-import {ViewPagerAndroid} from 'react-native';
+// import {ViewPagerAndroid} from 'react-native';
+import ViewPagerAndroid from '@react-native-community/viewpager';
 
 
 class ViewPager extends ViewPagerAndroid{

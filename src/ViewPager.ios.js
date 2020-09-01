@@ -1,6 +1,7 @@
 'use strict'
 import React, { Component } from 'react';
-import { View, ScrollView, ViewPagerAndroid } from 'react-native';
+import { View, ScrollView } from 'react-native';
+import ViewPagerAndroid from '@react-native-community/viewpager';
 
 type Event = Object;
 
