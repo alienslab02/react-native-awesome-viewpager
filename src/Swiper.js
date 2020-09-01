@@ -117,6 +117,16 @@ class Swiper extends Component {
         this.refs[VIEWPAGER_REF].setPage(selectedPage);
     }
 
+    nextPage() {
+      var page = this._page(this._selected) + 1;
+      this.refs[VIEWPAGER_REF].setPage(page);
+    }
+
+    prevPage() {
+      var page = this._page(this._selected) - 1;
+      this.refs[VIEWPAGER_REF].setPage(page);
+    }
+
     render() {
         var { children, initialPage } = this.props;
         var childrenCount = React.Children.count(children);
