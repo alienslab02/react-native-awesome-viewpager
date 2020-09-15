@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {View} from 'react-native';
 import ViewPager from './ViewPager';
 import PropTypes from 'prop-types';
@@ -9,7 +9,7 @@ import Indicator from './Swiper.Indicator';
 const VIEWPAGER_REF = 'VIEWPAGER';
 const INDICATOR_REF = 'INDICATOR_REF';
 
-class Swiper extends Component {
+class Swiper extends PureComponent {
     static propTypes = {
         ...ViewPager.propTypes,
         loop: PropTypes.bool,
@@ -27,23 +27,45 @@ class Swiper extends Component {
         scrollEnabled: true,
         indicator:true
     };
-    constructor(...props) {
-        super(...props);
+    constructor(props) {
+        super(props);
         this.state = {
 
         }
-        this._pageCount = 0;
-        this._selected = 0;
+        this._timeout;
+        this._validate(props);
+        this._selected = this._initialPage;
 
-        this._timeout
     }
     componentDidMount() {
         if (this.props.autoplay) {
             this._play();
         }
     }
+
     componentWillUnmount() {
         this._stop();
+    }
+
+    _validate(props) {
+      let { children, initialPage } = props;
+      const childrenCount = React.Children.count(children);
+      this._pageCount = childrenCount;
+
+      if (props.loop && childrenCount > 1) {
+          let first = children[0];
+          let last = children[childrenCount - 1];
+          first = React.createElement(first.type, first.props);
+          last = React.createElement(last.type, last.props);
+          children = React.Children.map(children, function (child) {
+              return child;
+          })
+          children.push(first);
+          children.unshift(last);
+          initialPage++;
+      }
+      this._initialPage = initialPage;
+      this._children = children;
     }
 
     _play() {
@@ -67,9 +89,9 @@ class Swiper extends Component {
         this.props.onPageScrollStateChanged&&this.props.onPageScrollStateChanged(state);
     }
     _onPageSelected(e) {
-        var { position } = e.nativeEvent;
-        var page = this._page(position);
-        this._selected = position;
+      var { position } = e.nativeEvent;
+      var page = this._page(position);
+      this._selected = position;
         if (this.props.loop && this._pageCount > 1) {
             if (position == 0) {
                 this.setPageWithoutAnimation(this._pageCount - 1)
@@ -121,7 +143,7 @@ class Swiper extends Component {
      * Goto next page with animation
      */
     nextPage() {
-      var page = this._page(this._selected) + 1;
+      const page = this._page(this._selected) + 1;
       this.setPage(page);
     }
 
@@ -129,35 +151,19 @@ class Swiper extends Component {
      * Goto prev page with animation
      */
     prevPage() {
-      var page = this._page(this._selected) - 1;
+      const page = this._page(this._selected) - 1;
       this.setPage(page);
     }
 
     render() {
-        var { children, initialPage } = this.props;
-        var childrenCount = React.Children.count(children);
-        this._pageCount = childrenCount;
-
-        if (this.props.loop && childrenCount > 1) {
-            var first = children[0];
-            var last = children[childrenCount - 1];
-            first = React.createElement(first.type, first.props);
-            last = React.createElement(last.type, last.props);
-            children = React.Children.map(children, function (child) {
-                return child;
-            })
-            children.push(first);
-            children.unshift(last);
-            initialPage++;
-        }
-        this._selected = initialPage;
+        this._validate(this.props);
         var viewpagerProps = {
             ...this.props,
             onPageSelected: (e) => this._onPageSelected(e),
             onPageScroll: (e) => this._onPageScroll(e),
             onPageScrollStateChange:(state)=>this._onPageScrollStateChange(state),
-            children,
-            initialPage,
+            children: this._children,
+            initialPage: this._initialPage,
             ref: VIEWPAGER_REF,
             style: { flex: 1 }
         }
