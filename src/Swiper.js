@@ -34,7 +34,7 @@ class Swiper extends PureComponent {
         }
         this._timeout;
         this._validate(props);
-        this._selected = this._initialPage;
+        this._selectedIndex = this._initialPage;
 
     }
     componentDidMount() {
@@ -71,13 +71,18 @@ class Swiper extends PureComponent {
     _play() {
         this._timeout = setTimeout(() => {
             clearTimeout(this._timeout);
-            var page = this._page(this._selected) + 1;
-            this.setPage(page);
+            this.nextPage();
             this._play();
         }, this.props.interval);
     }
     _stop() {
         clearTimeout(this._timeout);
+    }
+
+    _notifyPageChanged(page: number) {
+      const outerEvent = { nativeEvent: { position: page } };
+      this.refs[INDICATOR_REF]&&this.refs[INDICATOR_REF].onPageSelected(outerEvent)
+      this.props.onPageSelected && this.props.onPageSelected(outerEvent);
     }
 
     _onPageScrollStateChange(state){
@@ -89,53 +94,52 @@ class Swiper extends PureComponent {
         this.props.onPageScrollStateChanged&&this.props.onPageScrollStateChanged(state);
     }
     _onPageSelected(e) {
-      var { position } = e.nativeEvent;
-      var page = this._page(position);
-      this._selected = position;
-        if (this.props.loop && this._pageCount > 1) {
-            if (position == 0) {
-                this.setPageWithoutAnimation(this._pageCount - 1)
-            } else if (position == this._pageCount + 1) {
-                this.setPageWithoutAnimation(0)
-            }
-        }
-        var outerEvent = { nativeEvent: { position: page } };
-        this.refs[INDICATOR_REF]&&this.refs[INDICATOR_REF].onPageSelected(outerEvent)
-        this.props.onPageSelected && this.props.onPageSelected(outerEvent);
+      const { position } = e.nativeEvent;
+      this._selectedIndex = position;
+      let page = this._page(position);
+      if (this.props.loop && this._pageCount > 1) {
+          if (position === 0) {
+            this.setPageWithoutAnimation(this._pageCount-1);
+          } else if (position === this._pageCount + 1) {
+              this.setPageWithoutAnimation(0);
+          }
+      }
+      this._notifyPageChanged(page);
     }
     _onPageScroll(e) {
-        var { position, offset } = e.nativeEvent;
-        var page = this._page(position);
-        var outerEvent = { nativeEvent: { position: page, offset } };
+        const { position, offset } = e.nativeEvent;
+        const page = this._page(position);
+        const outerEvent = { nativeEvent: { position: page, offset } };
         this.refs[INDICATOR_REF]&&this.refs[INDICATOR_REF].onPageScroll(outerEvent);
         this.props.onPageScroll && this.props.onPageScroll(outerEvent);
     }
     _position(page: number): number {
         if (this.props.loop && this._pageCount > 1) {
-            page++;
+            return page+1;
         }
         return page;
     }
+
     _page(position: number): number {
         if (this.props.loop && this._pageCount > 1) {
             if (position == 0) {
-                position = this._pageCount - 1;
+                return  this._pageCount - 1;
             } else if (position == this._pageCount + 1) {
-                position = 0;
+                return 0;
             } else {
-                position--;
+                return position-1;
             }
         }
         return position;
     }
 
-    setPageWithoutAnimation(selectedPage: number) {
-        selectedPage = this._position(selectedPage);
+    setPageWithoutAnimation(p: number) {
+        const selectedPage = this._position(p);
         this.refs[VIEWPAGER_REF].setPageWithoutAnimation(selectedPage);
     }
 
-    setPage(selectedPage: number) {
-      selectedPage = this._position(selectedPage);
+    setPage(p: number) {
+      const selectedPage = this._position(p);
       this.refs[VIEWPAGER_REF].setPage(selectedPage);
     }
 
@@ -143,7 +147,7 @@ class Swiper extends PureComponent {
      * Goto next page with animation
      */
     nextPage() {
-      const page = this._page(this._selected) + 1;
+      const page = this._page(this._selectedIndex) + 1;
       this.setPage(page);
     }
 
@@ -151,13 +155,13 @@ class Swiper extends PureComponent {
      * Goto prev page with animation
      */
     prevPage() {
-      const page = this._page(this._selected) - 1;
+      const page = this._page(this._selectedIndex) - 1;
       this.setPage(page);
     }
 
     render() {
         this._validate(this.props);
-        var viewpagerProps = {
+        const viewpagerProps = {
             ...this.props,
             onPageSelected: (e) => this._onPageSelected(e),
             onPageScroll: (e) => this._onPageScroll(e),
@@ -167,7 +171,7 @@ class Swiper extends PureComponent {
             ref: VIEWPAGER_REF,
             style: { flex: 1 }
         }
-        var style = [
+        const style = [
             this.props.style,
             {
                 flexDirection: 'column',
