@@ -102,9 +102,12 @@ class Swiper extends PureComponent {
             this.setPageWithoutAnimation(this._pageCount-1);
           } else if (position === this._pageCount + 1) {
               this.setPageWithoutAnimation(0);
+          } else {
+            this._notifyPageChanged(page);
           }
+      } else {
+        this._notifyPageChanged(page);
       }
-      this._notifyPageChanged(page);
     }
     _onPageScroll(e) {
         const { position, offset } = e.nativeEvent;
