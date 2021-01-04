@@ -99,9 +99,14 @@ class Swiper extends PureComponent {
       let page = this._page(position);
       if (this.props.loop && this._pageCount > 1) {
           if (position === 0) {
-            this.setPageWithoutAnimation(this._pageCount-1);
+            // Let's add a timeout to show smooth transition when switching to first/last position
+            setTimeout(() => {
+              this.setPageWithoutAnimation(this._pageCount-1);
+            }, 200);
           } else if (position === this._pageCount + 1) {
+            setTimeout(() => {
               this.setPageWithoutAnimation(0);
+            }, 200);
           } else {
             this._notifyPageChanged(page);
           }
@@ -190,7 +195,7 @@ class Swiper extends PureComponent {
             {this.props.indicator&&<Indicator
                 ref = {INDICATOR_REF}
                 initialPage = {this.props.initialPage}
-                count={childrenCount} />}
+                count={this._pageCount} />}
         </View>
 
 
